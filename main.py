@@ -13,6 +13,8 @@ SESSION_NAME = os.getenv('SESSION_NAME', 'session')
 TARGET_USER_ID = int(os.getenv('TARGET_USER_ID'))
 DAYS_THRESHOLD = int(os.getenv('DAYS_THRESHOLD', 10))
 
+excluded_groups_str = os.getenv('EXCLUDED_GROUPS', '')
+excluded_groups = [int(g.strip()) for g in excluded_groups_str.split(',') if g.strip()]
 
 async def main():
     client = TelegramClient(SESSION_NAME, API_ID, API_HASH)
@@ -24,6 +26,11 @@ async def main():
     async for dialog in client.iter_dialogs():
         # Пропускаем личные чаты
         if dialog.is_user:
+            continue
+
+        # Пропускаем группы из списка исключений по ID
+        if dialog.id in excluded_groups:
+            print(f'Skipping excluded group: "{dialog.name}" (ID: {dialog.id})')
             continue
 
         print(f'Processing chat: "{dialog.name}" (ID: {dialog.id})')
